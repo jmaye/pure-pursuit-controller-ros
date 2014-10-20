@@ -1,0 +1,9 @@
+ros:
+  queue_depth: 100
+  path_msg_topic_name: "/reference_path"
+  cmd_velocity_topic_name: "/starleth/command_velocity"
+controller:
+  initial_waypoint: -1
+  velocity: 0.2 # [m/s]
+  look_ahead_ratio: 1.0 # w.r.t. velocity
+  epsilon: 1e-6

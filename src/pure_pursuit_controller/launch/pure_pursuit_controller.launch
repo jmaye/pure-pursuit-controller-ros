@@ -1,0 +1,6 @@
+<launch>
+  <arg name="node_name" default="pure_pursuit_controller"/>
+  <node name="$(arg node_name)" pkg="pure_pursuit_controller" type="pure_pursuit_controller_node" output="screen" respawn="true">
+    <rosparam command="load" file="$(find pure_pursuit_controller)/etc/pure_pursuit_controller.yaml"/>
+  </node>
+</launch>

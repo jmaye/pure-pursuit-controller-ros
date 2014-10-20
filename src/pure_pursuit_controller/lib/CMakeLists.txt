@@ -1,0 +1,1 @@
+remake_ros_package_add_library(pure-pursuit-controller-ros)
