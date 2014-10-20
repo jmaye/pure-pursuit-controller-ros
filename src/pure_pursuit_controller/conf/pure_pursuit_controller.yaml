@@ -1,7 +1,9 @@
 ros:
   queue_depth: 100
-  path_msg_topic_name: "/reference_path"
+  path_topic_name: "/reference_path"
+  odometry_topic_name: "/starleth/robot_state/odometry"
   cmd_velocity_topic_name: "/starleth/command_velocity"
+  pose_frame_id: "base"
 controller:
   initial_waypoint: -1
   velocity: 0.2 # [m/s]

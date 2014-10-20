@@ -1,4 +1,10 @@
-purse-pursuit-controller-ros (0.1-1) trusty; urgency=low
+pure-pursuit-controller-ros (0.1-2) trusty; urgency=low
+
+  * First untested version
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Mon, 20 Oct 2014 17:04:32 +0200
+
+pure-pursuit-controller-ros (0.1-1) trusty; urgency=low
 
   * First draft.
 

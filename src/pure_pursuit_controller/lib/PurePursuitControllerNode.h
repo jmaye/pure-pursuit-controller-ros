@@ -30,8 +30,10 @@
 #include <ros/ros.h>
 
 #include <nav_msgs/Path.h>
+#include <nav_msgs/Odometry.h>
 
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PointStamped.h>
 
 #include <tf/transform_listener.h>
 
@@ -67,14 +69,25 @@ namespace starleth {
       */
     /// Spin once
     void spin();
-    /// Returns the lookahead distance for the given position
-    double getLookAdeadDistance(const geometry_msgs::Point& position) const;
-    /// Returns the lookahead angle for the given position in [rad]
-    double getLookAdeadAngle(const geometry_msgs::Point& position) const;
+    /// Step once
+    bool step(geometry_msgs::Twist& twist);
+    /// Returns the current pose of the robot
+    geometry_msgs::PoseStamped getCurrentPose() const;
+    /// Returns the lookahead distance for the given pose
+    double getLookAheadDistance(const geometry_msgs::PoseStamped& pose) const;
+    /// Returns the lookahead angle for the given pose in [rad]
+    double getLookAheadAngle(const geometry_msgs::PoseStamped& pose) const;
     /// Returns the current lookahead distance threshold
-    double getLookAdeadThreshold() const;
-    /// Returns the next waypoint 
-    double getLookAdeadThreshold() const;
+    double getLookAheadThreshold() const;
+    /// Returns the lookahead distance for the given pose
+    double getArcDistance(const geometry_msgs::PoseStamped& pose) const;
+    /// Returns the next way point by linear search from the current waypoint
+    int getNextWayPoint(int wayPoint) const;    
+    /// Returns the current closest waypoint
+    int getClosestWayPoint() const;    
+    /// Returns the interpolated pose based on the given way point
+    bool getInterpolatedPose(int wayPoint, geometry_msgs::PoseStamped&
+      interpolatedPose) const;    
     /** @}
       */
 
@@ -85,7 +98,9 @@ namespace starleth {
     /// Retrieves parameters
     void getParameters();
     /// Path message callback
-    void pathMsgCallback(const nav_msgs::PathConstPtr& msg);
+    void pathCallback(const nav_msgs::Path& msg);
+    /// Odometry message callback
+    void odometryCallback(const nav_msgs::Odometry& msg);
     /** @}
       */
 
@@ -95,13 +110,21 @@ namespace starleth {
     /// ROS node handle
     ros::NodeHandle _nodeHandle;
     /// Path message subscriber
-    ros::Subscriber _pathMsgSubscriber;
+    ros::Subscriber _pathSubscriber;
     /// Path message topic name
-    std::string _pathMsgTopicName;
+    std::string _pathTopicName;
+    /// Odometry message subscriber
+    ros::Subscriber _odometrySubscriber;
+    /// Odometry message topic name
+    std::string _odometryTopicName;
+    /// Frame id of pose estimates
+    std::string _poseFrameId;
     /// Queue size for receiving messages
     int _queueDepth;
     /// Current reference path
-    std::vector<geometry_msgs::PoseStamped> _currentReferencePath;
+    nav_msgs::Path _currentReferencePath;
+    /// Current velocity
+    geometry_msgs::Twist _currentVelocity;
     /// Next way point
     int _nextWayPoint;
     /// Commanded velocity publisher
