@@ -3,8 +3,10 @@ ros:
   path_topic_name: "/reference_path"
   odometry_topic_name: "/starleth/robot_state/odometry"
   cmd_velocity_topic_name: "/starleth/command_velocity"
+  cmd_trajectory_topic_name: "/local_planner_solution_trajectory"
   pose_frame_id: "base"
 controller:
+  frequency: 20.0
   initial_waypoint: -1
   velocity: 0.2 # [m/s]
   look_ahead_ratio: 1.0 # w.r.t. velocity

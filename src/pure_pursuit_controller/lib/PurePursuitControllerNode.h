@@ -101,6 +101,8 @@ namespace starleth {
     void pathCallback(const nav_msgs::Path& msg);
     /// Odometry message callback
     void odometryCallback(const nav_msgs::Odometry& msg);
+    /// Timer callback
+    void timerCallback(const ros::TimerEvent& event);
     /** @}
       */
 
@@ -125,12 +127,18 @@ namespace starleth {
     nav_msgs::Path _currentReferencePath;
     /// Current velocity
     geometry_msgs::Twist _currentVelocity;
+    /// Controller frequency
+    double _frequency;
     /// Next way point
     int _nextWayPoint;
     /// Commanded velocity publisher
     ros::Publisher _cmdVelocityPublisher;
     /// Commanded velocity topic name
     std::string _cmdVelocityTopicName;
+    /// Commanded trajectory publisher
+    ros::Publisher _cmdTrajectoryPublisher;
+    /// Commanded trajectory topic name
+    std::string _cmdTrajectoryTopicName;
     /// Initial way point
     int _initialWayPoint;
     /// Velocity
@@ -140,7 +148,9 @@ namespace starleth {
     /// Epsilon
     double _epsilon;
     /// Transform listener for robot's pose w.r.t. map
-    tf::TransformListener _tfListener;
+    tf::TransformListener tfListener_;
+    /// Timer
+    ros::Timer _timer;
     /** @}
       */
 

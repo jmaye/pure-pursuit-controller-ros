@@ -22,6 +22,8 @@
 
 #include <geometry_msgs/Twist.h>
 
+#include <visualization_msgs/Marker.h>
+
 namespace starleth {
 
 /******************************************************************************/
@@ -33,14 +35,22 @@ namespace starleth {
       _nodeHandle(nh),
       _nextWayPoint(-1) {
     getParameters();
+    
     _pathSubscriber =
       _nodeHandle.subscribe(_pathTopicName, _queueDepth,
       &PurePursuitControllerNode::pathCallback, this);
     _odometrySubscriber =
       _nodeHandle.subscribe(_odometryTopicName, _queueDepth,
       &PurePursuitControllerNode::odometryCallback, this);
+      
     _cmdVelocityPublisher = _nodeHandle.advertise<geometry_msgs::Twist>(
       _cmdVelocityTopicName, _queueDepth);
+    _cmdTrajectoryPublisher =
+      _nodeHandle.advertise<visualization_msgs::Marker>(
+      _cmdTrajectoryTopicName, _queueDepth);
+    
+    _timer = nh.createTimer(ros::Duration(1.0/_frequency),
+      &PurePursuitControllerNode::timerCallback, this);
   }
 
   PurePursuitControllerNode::~PurePursuitControllerNode() {
@@ -79,10 +89,48 @@ namespace starleth {
 
   void PurePursuitControllerNode::spin() {
     ros::spin();
-    
-    // Call step() and transform twist into body frame
   }
 
+  void PurePursuitControllerNode::timerCallback(const ros::TimerEvent&
+      event) {
+    geometry_msgs::Twist cmdVelocity;
+
+    if (step(cmdVelocity)) {
+      const size_t numPoints = 20;
+      
+      double lookAheadThreshold = getLookAheadThreshold();
+      visualization_msgs::Marker cmdTrajectory;
+      
+      cmdTrajectory.header.frame_id = _poseFrameId;
+      cmdTrajectory.header.stamp = ros::Time::now();
+      cmdTrajectory.ns = "solution_trajectory";
+      cmdTrajectory.type = 4;
+      cmdTrajectory.action = 0;
+      cmdTrajectory.scale.x = 0.12;
+      cmdTrajectory.color.r = 0.0;
+      cmdTrajectory.color.g = 0.0;
+      cmdTrajectory.color.b = 1.0;
+      cmdTrajectory.color.a = 1.0;
+      cmdTrajectory.lifetime = ros::Duration(0);
+      cmdTrajectory.frame_locked = true;
+      cmdTrajectory.pose = geometry_msgs::Pose();
+      cmdTrajectory.points.resize(numPoints);      
+      
+      for (int i = 0; i < numPoints; ++i) {
+        geometry_msgs::Pose pose;
+        double dt = lookAheadThreshold*(double)i/(double)numPoints;
+        
+        pose.orientation.z = cmdVelocity.angular.x*dt;
+        pose.position.x = cmdVelocity.linear.x*std::cos(
+          pose.orientation.z)*dt;
+        pose.position.y = cmdVelocity.linear.x*std::sin(
+          pose.orientation.z)*dt;
+        
+        cmdTrajectory.points[i] = pose.position;
+      }
+    }
+  }
+    
   bool PurePursuitControllerNode::step(geometry_msgs::Twist& twist) {
     twist.linear.x = 0.0;
     twist.linear.y = 0.0;
@@ -298,7 +346,11 @@ namespace starleth {
       _odometryTopicName, "/starleth/robot_state/odometry");
     _nodeHandle.param<std::string>("ros/cmd_velocity_topic_name",
       _cmdVelocityTopicName, "/starleth/command_velocity");
+    _nodeHandle.param<std::string>("ros/cmd_trajectory_topic_name",
+      _cmdTrajectoryTopicName, "/local_planner_solution_trajectory");
     _nodeHandle.param<std::string>("ros/pose_frame_id", _poseFrameId, "base");
+    
+    _nodeHandle.param<double>("controller/frequency", _frequency, 20.0);
     _nodeHandle.param<int>("controller/initial_waypoint", _initialWayPoint, -1);
     _nodeHandle.param<double>("controller/velocity", _velocity, 0.2);
     _nodeHandle.param<double>("controller/look_ahead_ratio",
